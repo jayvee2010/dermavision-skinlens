@@ -69,7 +69,7 @@ Results are colour-coded into three risk tiers and delivered with **actionable g
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│   📸 Upload          📋 Questionnaire      🧠 AI Analysis           │
+│   📸 Upload          📋 Questionnaire      🧠 AI Analysis          │
 │   ─────────          ──────────────────    ────────────────         │
 │   User captures  →   6 health questions →  CNN classifies           │
 │   lesion image       (age, sun exposure,   lesion across            │
