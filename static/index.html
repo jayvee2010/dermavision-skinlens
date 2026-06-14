@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Skin Lens — AI-Based Skin Risk Awareness</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0d0f;
+    --surface: #111417;
+    --surface2: #181c20;
+    --border: rgba(255,255,255,0.07);
+    --accent: #ffcdb2;
+    --accent2: #5fcfb8;
+    --accent3: #f5a623;
+    --text: #f0ede8;
+    --muted: #7a8490;
+    --danger: #ff6b6b;
+    --safe: #ffcdb2;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Language switcher */
+  .lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 4px;
+    border-radius: 0;
+  }
+  .lang-btn {
+    padding: 0.3rem 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .lang-btn.active {
+    background: var(--accent);
+    color: #0a0d0f;
+    font-weight: 700;
+  }
+  .lang-btn:not(.active):hover { color: var(--accent); }
+
+  /* Custom cursor */
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9998;
+    transition: all 0.15s ease; opacity: 0.5;
+  }
+
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 3rem;
+    background: rgba(10,13,15,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    letter-spacing: -0.02em; color: var(--text); text-decoration: none;
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.82rem; font-weight: 500;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
+  .nav-cta {
+    background: var(--accent); color: #0a0d0f;
+    border: none; padding: 0.55rem 1.2rem;
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 600; font-size: 0.8rem;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-cta:hover { background: #ffe4d1; transform: translateY(-1px); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 8rem 3rem 4rem; position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 70% 50%, rgba(255,205,178,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 60% at 20% 80%, rgba(95,207,184,0.05) 0%, transparent 60%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  }
+  .hero-content { position: relative; max-width: 700px; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,205,178,0.1); border: 1px solid rgba(255,205,178,0.3);
+    color: var(--accent); font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.35rem 0.9rem; margin-bottom: 2rem;
+  }
+  .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.3)} }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 900; line-height: 1.0;
+    letter-spacing: -0.03em; margin-bottom: 1.5rem;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .hero-sub {
+    font-size: 1.05rem; color: var(--muted);
+    line-height: 1.8; max-width: 520px; margin-bottom: 2.5rem;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: #0a0d0f; border: none;
+    padding: 0.9rem 2rem;
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,205,178,0.3); }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); padding: 0.9rem 2rem;
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 500; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s; text-decoration: none; display: inline-block;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero-stats {
+    position: absolute; right: 3rem; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 1.2rem 1.6rem; text-align: right;
+    opacity: 0; animation: fadeUp 0.6s forwards;
+  }
+  .stat-card:nth-child(1){ animation-delay: 0.3s }
+  .stat-card:nth-child(2){ animation-delay: 0.5s }
+  .stat-card:nth-child(3){ animation-delay: 0.7s }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--accent); line-height: 1; }
+  .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.3rem; }
+
+  /* Sections */
+  section { padding: 6rem 3rem; }
+  .section-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.8rem; }
+  h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.2rem; }
+  .section-desc { color: var(--muted); font-size: 1rem; line-height: 1.8; max-width: 540px; }
+
+  /* How it works */
+  .how { background: var(--surface); }
+  .how-inner { max-width: 1100px; margin: 0 auto; }
+  .how-header { text-align: center; margin-bottom: 4rem; }
+  .how-header .section-desc { margin: 0 auto; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; }
+  .step { padding: 2.5rem; border: 1px solid var(--border); border-right: none; transition: background 0.3s; }
+  .step:last-child { border-right: 1px solid var(--border); }
+  .step:hover { background: rgba(255,205,178,0.04); }
+  .step-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 1.2rem; }
+  .step-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .step h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; }
+  .step p { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
+  /* Scan */
+  .scan-section { max-width: 1100px; margin: 0 auto; }
+  .scan-header { margin-bottom: 3rem; }
+  .scan-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); }
+  .scan-panel { background: var(--bg); padding: 3rem; }
+  .scan-toggle { display: flex; gap: 2px; margin-bottom: 2rem; background: var(--surface); padding: 4px; }
+  .toggle-btn {
+    flex: 1; padding: 0.7rem 1rem; border: none;
+    background: transparent; color: var(--muted);
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  }
+  .toggle-btn.active { background: var(--accent); color: #0a0d0f; font-weight: 600; }
+
+  .upload-zone {
+    border: 2px dashed rgba(255,205,178,0.25);
+    background: rgba(255,205,178,0.02);
+    padding: 3rem 2rem; text-align: center;
+    cursor: pointer; transition: all 0.3s;
+    position: relative; margin-bottom: 1.5rem;
+  }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: rgba(255,205,178,0.06); }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .upload-zone h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .upload-zone p { font-size: 0.8rem; color: var(--muted); }
+  .upload-zone .accent { color: var(--accent); }
+
+  #preview-container { display: none; margin-bottom: 1.5rem; position: relative; }
+  #preview-img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+  .preview-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,13,15,0.8) 0%, transparent 50%); display: flex; align-items: flex-end; padding: 1rem; }
+  .preview-name { font-size: 0.78rem; color: var(--accent); font-family: 'DM Mono', monospace; }
+
+  .quality-bar { background: var(--surface); padding: 1rem 1.2rem; margin-bottom: 1.5rem; display: none; }
+  .quality-label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.78rem; color: var(--muted); }
+  .quality-label span:last-child { color: var(--accent); font-family: 'DM Mono', monospace; }
+  .quality-track { height: 4px; background: var(--surface2); }
+  .quality-fill { height: 100%; background: var(--accent); transition: width 1s ease; width: 0%; }
+
+  .analyze-btn {
+    width: 100%; background: var(--accent); color: #0a0d0f; border: none; padding: 1rem;
+    font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 700; font-size: 0.95rem; letter-spacing: 0.03em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+  }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .analyze-btn:not(:disabled):hover { background: #ffe4d1; transform: translateY(-1px); }
+  .btn-loader { display: none; width: 18px; height: 18px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #0a0d0f; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .results-panel { padding: 3rem; background: var(--bg); display: flex; flex-direction: column; }
+  .result-idle { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--muted); }
+  .result-idle-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+  .result-idle p { font-size: 0.85rem; }
+
+  #result-output { display: none; flex: 1; }
+  .result-risk { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+  .risk-badge { padding: 0.4rem 1rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'DM Mono', monospace; }
+  .risk-low { background: rgba(255,205,178,0.15); color: var(--safe); border: 1px solid var(--safe); }
+  .risk-high { background: rgba(255,107,107,0.15); color: var(--danger); border: 1px solid var(--danger); }
+  .risk-moderate { background: rgba(245,166,35,0.15); color: var(--accent3); border: 1px solid var(--accent3); }
+
+  .confidence-section { margin-bottom: 2rem; }
+  .confidence-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.8rem; }
+  .confidence-bars { display: flex; flex-direction: column; gap: 0.6rem; }
+  .conf-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.78rem; }
+  .conf-name { width: 120px; color: var(--muted); }
+  .conf-track { flex: 1; height: 6px; background: var(--surface2); }
+  .conf-fill { height: 100%; transition: width 1.2s ease; }
+  .conf-pct { width: 40px; text-align: right; font-family: 'DM Mono', monospace; color: var(--text); font-size: 0.75rem; }
+
+  .result-guidance { background: var(--surface); border-left: 3px solid var(--accent); padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+  .result-guidance h4 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+  .result-guidance p { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
+  .disclaimer { font-size: 0.72rem; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 1rem; font-style: italic; }
+
+  /* Impact */
+  .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); max-width: 1100px; margin: 3rem auto 0; }
+  .impact-card { background: var(--bg); padding: 2.5rem; }
+  .impact-num { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 900; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; }
+  .impact-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .impact-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+
+  /* NGO */
+  .ngo { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .ngo-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 3rem; }
+  .ngo-badge { background: rgba(255,205,178,0.08); border: 1px solid rgba(255,205,178,0.25); padding: 0.5rem 1.2rem; font-size: 0.75rem; color: var(--accent); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; display: inline-block; margin-bottom: 1rem; }
+  .ngo-content h2 { margin-bottom: 0.8rem; }
+  .ngo-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 0.8rem; align-items: flex-start; }
+
+  /* Footer */
+  footer { padding: 4rem 3rem 2rem; border-top: 1px solid var(--border); max-width: 1400px; margin: 0 auto; }
+  .footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; flex-wrap: wrap; gap: 2rem; }
+  .footer-brand .logo { display: block; margin-bottom: 0.8rem; font-size: 1.6rem; }
+  .footer-brand p { font-size: 0.82rem; color: var(--muted); max-width: 260px; line-height: 1.7; }
+  .footer-links h4 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1rem; }
+  .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--muted); }
+  .footer-bottom .accent { color: var(--accent); }
+
+  .summit-tag { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); padding: 0.8rem 1.2rem; z-index: 50; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .summit-tag strong { color: var(--accent); display: block; font-size: 0.75rem; margin-bottom: 0.1rem; }
+
+  /* Doctor Recommendations */
+  .doctor-section { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; margin-bottom: 1.5rem; }
+  .doctor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+  .doctor-header h3 { font-size: 1rem; font-weight: 700; margin: 0; font-family: 'Playfair Display', serif; letter-spacing: 0.02em; }
+  .doctor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+  .doctor-card { background: var(--surface); border: 1px solid var(--border); padding: 1.2rem; transition: all 0.2s; display: flex; gap: 1rem; align-items: center; }
+  .doctor-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .doctor-img { width: 48px; height: 48px; border-radius: 50%; background: var(--surface2); object-fit: cover; flex-shrink: 0; }
+  .doctor-info h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--text); }
+  .doctor-info p { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.4rem; line-height: 1.3; }
+  .doctor-action { font-size: 0.7rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none; }
+
+  .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* Devanagari font for Hindi/Marathi */
+  body.lang-hi, body.lang-mr {
+    font-family: 'Noto Sans Devanagari', 'DM Sans', sans-serif;
+  }
+  body.lang-hi h1, body.lang-mr h1,
+  body.lang-hi h2, body.lang-mr h2,
+  body.lang-hi h3, body.lang-mr h3 {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    letter-spacing: 0;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; flex-wrap: wrap; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .hero-stats { display: none; }
+    .scan-layout { grid-template-columns: 1fr; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .ngo-inner { flex-direction: column; }
+    h1 { font-size: 2.3rem; }
+    .lang-switcher { gap: 2px; }
+    .lang-btn { padding: 0.25rem 0.5rem; font-size: 0.72rem; }
+  }
+
+  .q-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.6rem; font-family: inherit; font-size: 0.85rem;
+    border-radius: 0; outline: none; transition: border-color 0.2s;
+  }
+  .q-input:focus { border-color: var(--accent); }
+</style>
+</head>
+<body class="lang-en">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Skin<span>Lens</span></a>
+  <ul class="nav-links">
+    <li><a href="#how" data-key="nav_how">How it Works</a></li>
+    <li><a href="#scan" data-key="nav_scan">Try It</a></li>
+    <li><a href="#impact" data-key="nav_impact">Impact</a></li>
+    <li><a href="#ngo" data-key="nav_ngo">For NGOs</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('hi')">हिंदी</button>
+      <button class="lang-btn" onclick="setLang('mr')">मराठी</button>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('scan').scrollIntoView({behavior:'smooth'})" data-key="nav_cta">Try Free Scan</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <h1 data-key="hero_h1">AI-Powered<br><em>Skin Risk</em><br>Awareness</h1>
+    <p class="hero-sub" data-key="hero_sub">Skin Lens uses a trained Convolutional Neural Network to analyze skin lesions and classify risk — making early awareness accessible to everyone, everywhere, for free.</p>
+    <div class="hero-actions">
+      <a href="#scan" class="btn-primary" data-key="hero_cta1">Try a Free Scan</a>
+      <a href="#how" class="btn-outline" data-key="hero_cta2">Learn How It Works</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-card">
+      <div class="stat-num">1.5B</div>
+      <div class="stat-label" data-key="stat1">People with limited dermatology access</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">95%</div>
+      <div class="stat-label" data-key="stat2">Survival rate if detected early</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" data-key="stat3_num">Free</div>
+      <div class="stat-label" data-key="stat3">Always free for NGOs</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header fade-up">
+      <div class="section-label" data-key="how_label">Process</div>
+      <h2 data-key="how_h2">How Skin Lens Works</h2>
+      <p class="section-desc" data-key="how_desc">A simple four-step process that combines image quality validation with deep learning to provide responsible risk awareness.</p>
+    </div>
+    <div class="steps fade-up">
+      <div class="step">
+        <div class="step-num">01 ——</div>
+        <div class="step-icon">📸</div>
+        <h3 data-key="step1_h">Upload Image</h3>
+        <p data-key="step1_p">Take or upload a clear photo of the skin lesion. The system accepts JPEG and PNG formats and guides you for best results.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02 ——</div>
+        <div class="step-icon">🔍</div>
+        <h3 data-key="step2_h">Quality Check</h3>
+        <p data-key="step2_p">Before analysis, Skin Lens validates image quality — checking lighting, focus, and clarity — to ensure accurate results.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03 ——</div>
+        <div class="step-icon">🧠</div>
+        <h3 data-key="step3_h">AI Analysis</h3>
+        <p data-key="step3_p">Our AI model examines color, shape, and texture of the lesion to classify it into risk categories.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04 ——</div>
+        <div class="step-icon">📋</div>
+        <h3 data-key="step4_h">Risk Guidance</h3>
+        <p data-key="step4_p">Receive a clear risk level with actionable guidance. Not a diagnosis — a responsible nudge toward timely medical care.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCAN TOOL -->
+<section id="scan">
+  <div class="scan-section">
+    <div class="scan-header fade-up">
+      <div class="section-label" data-key="scan_label">AI Tool</div>
+      <h2 data-key="scan_h2">Scan Your Skin Lesion</h2>
+      <p class="section-desc" data-key="scan_desc">Choose your scan type and upload an image for instant AI-powered risk awareness.</p>
+    </div>
+
+    <div class="scan-layout fade-up">
+      <div class="scan-panel">
+        <div class="scan-toggle">
+          <button class="toggle-btn active" id="quickBtn" onclick="setScanMode('quick')" data-key="quick_btn">⚡ Quick Scan</button>
+          <button class="toggle-btn" id="detailBtn" onclick="setScanMode('detailed')" data-key="detail_btn">🔬 Detailed Scan</button>
+        </div>
+
+        <div id="scan-info" style="background:var(--surface);padding:0.8rem 1rem;margin-bottom:1.5rem;font-size:0.82rem;color:var(--muted);border-left:2px solid var(--accent)">
+          <span data-key="quick_info_label" style="color:var(--accent);font-weight:600">Quick Scan: </span><span data-key="quick_info_text">Instant risk awareness using our AI model. Results in seconds.</span>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" />
+          <div class="upload-icon">🩺</div>
+          <h3 data-key="upload_h">Drop your image here</h3>
+          <p data-key="upload_p1">or <span class="accent" data-key="upload_browse">click to browse</span></p>
+          <p style="margin-top:0.5rem" data-key="upload_p2">Supports JPG, PNG · Max 10MB</p>
+        </div>
+
+        <div id="preview-container">
+          <img id="preview-img" src="" alt="Uploaded lesion" />
+          <div class="preview-overlay">
+            <span class="preview-name" id="file-name"></span>
+          </div>
+        </div>
+
+        <div id="questionnaireSection" style="display:none; margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;" data-key="q_title">Patient Details</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_gender">Gender</label>
+              <select id="q-gender" class="q-input" onchange="checkFormValidity()"><option value="" data-key="q_select">Select...</option><option value="male" data-key="q_male">Male</option><option value="female" data-key="q_female">Female</option><option value="other" data-key="q_other">Other</option></select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_age">Age Group</label>
+              <select id="q-age" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="0-18">0-18</option><option value="19-35">19-35</option><option value="36-50">36-50</option><option value="51-65">51-65</option><option value="65+">65+</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_sun">Daily Sun Exposure</label>
+              <select id="q-sun" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="low" data-key="q_sun_low">Low (< 1 hour)</option><option value="moderate" data-key="q_sun_mod">Moderate (1-3 hours)</option><option value="high" data-key="q_sun_high">High (> 3 hours)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_history">Family History</label>
+              <select id="q-history" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yes" data-key="q_yes">Yes</option>
+                <option value="no" data-key="q_no">No</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_change">Has it changed?</label>
+              <select id="q-change" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yes" data-key="q_yes">Yes</option>
+                <option value="no" data-key="q_no">No</option>
+                <option value="unknown" data-key="q_unknown">Unknown</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_symptoms">Itching/Bleeding?</label>
+              <select id="q-symptoms" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yes" data-key="q_yes">Yes</option>
+                <option value="no" data-key="q_no">No</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="quality-bar" id="qualityBar">
+          <div class="quality-label">
+            <span data-key="quality_label">Image Quality</span>
+            <span id="qualityPct">—</span>
+          </div>
+          <div class="quality-track"><div class="quality-fill" id="qualityFill"></div></div>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()" disabled>
+          <span id="btnText" data-key="analyze_btn">Analyze Lesion</span>
+          <div class="btn-loader" id="btnLoader"></div>
+        </button>
+      </div>
+
+      <!-- Results Panel -->
+      <div class="results-panel">
+        <div class="result-idle" id="resultIdle">
+          <div class="result-idle-icon">🔬</div>
+          <p data-key="result_idle">Upload an image to see<br>your risk assessment here</p>
+        </div>
+
+        <div id="result-output">
+          <div class="result-risk">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem" data-key="result_risk_label">Risk Level</div>
+              <span class="risk-badge" id="riskBadge">—</span>
+            </div>
+            <div style="width:1px;height:35px;background:var(--border);margin:0 0.5rem"></div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem" data-key="result_analysis_label">Analysis</div>
+              <div style="font-family:'DM Mono',monospace;font-size:1.1rem;color:var(--text);font-weight:500" id="topClass">—</div>
+            </div>
+          </div>
+
+          <div class="confidence-section">
+            <div class="confidence-label" data-key="conf_label">Classification Confidence</div>
+            <div class="confidence-bars" id="confBars"></div>
+          </div>
+
+          <div class="result-guidance" id="guidanceBox">
+            <h4 data-key="guidance_h">Recommendation</h4>
+            <p id="guidanceText">—</p>
+          </div>
+
+          <div class="doctor-section" id="doctorSection" style="display:none">
+            <div class="doctor-header">
+              <h3 data-key="doc_title">Recommended Specialists</h3>
+              <span style="font-size:0.75rem;color:var(--muted)" data-key="doc_subtitle">Based on analysis</span>
+            </div>
+            <div class="doctor-grid" id="doctorGrid"></div>
+          </div>
+
+          <p class="disclaimer" data-key="disclaimer">⚠️ Skin Lens is an AI-based awareness tool, not a medical diagnostic device. Results are for informational purposes only. Always consult a qualified dermatologist for professional evaluation and diagnosis.</p>
+          <button class="btn-outline" onclick="detachImage()" style="width:100%;margin-top:1.5rem;text-align:center">Analyze New Image</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="fade-up">
+      <div class="section-label" data-key="impact_label">Impact & Feasibility</div>
+      <h2 data-key="impact_h2">Real-World Impact at Scale</h2>
+      <p class="section-desc" data-key="impact_desc">Skin Lens is designed for scalability, built with feasibility in mind, and focused on communities who need it most.</p>
+    </div>
+    <div class="impact-grid fade-up">
+      <div class="impact-card">
+        <div class="impact-num">150+</div>
+        <h3 data-key="impact1_h">Countries Affected</h3>
+        <p data-key="impact1_p">Dermatologist shortages affect rural and low-income regions globally, where early detection is most critical yet hardest to access.</p>
+      </div>
+      <div class="impact-card">
+        <div class="impact-num">4×</div>
+        <h3 data-key="impact2_h">Better Outcomes</h3>
+        <p data-key="impact2_p">Skin cancers caught at stage 1 have up to 4× better survival outcomes than those detected at later stages.</p>
+      </div>
+      <div class="impact-card">
+        <div class="impact-num">0₹</div>
+        <h3 data-key="impact3_h">Cost to NGOs</h3>
+        <p data-key="impact3_p">Completely free access for registered non-profit organizations, enabling large-scale awareness campaigns with no barriers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NGO SECTION -->
+<section class="ngo" id="ngo">
+  <div class="ngo-inner fade-up">
+    <div class="ngo-content">
+      <div class="ngo-badge" data-key="ngo_badge">For NGOs & Community Organizations</div>
+      <h2 data-key="ngo_h2">Bring Skin Lens to<br>Your Community</h2>
+      <p class="section-desc" data-key="ngo_desc">Skin Lens is provided completely free of cost to NGOs and community health organizations. Partner with us to run large-scale screening camps and skin awareness programs in underserved areas.</p>
+    </div>
+    <div class="ngo-actions">
+      <button class="btn-primary" onclick="alert('NGO registration coming soon!')" data-key="ngo_btn1">Register as NGO Partner</button>
+      <button class="btn-outline" onclick="alert('Download our partnership brochure!')" data-key="ngo_btn2">Download Partnership Kit</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="logo">Skin<span>Lens</span></a>
+      <p data-key="footer_brand_desc">An AI-based skin risk awareness tool designed for accessibility, responsibility, and social impact.</p>
+    </div>
+    <div class="footer-links">
+      <h4 data-key="footer_product">Product</h4>
+      <ul>
+        <li><a href="#scan" data-key="footer_quick">Quick Scan</a></li>
+        <li><a href="#scan" data-key="footer_detailed">Detailed Scan</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4 data-key="footer_mission">Mission</h4>
+      <ul>
+        <li><a href="#impact" data-key="footer_impact">Our Impact</a></li>
+        <li><a href="#ngo" data-key="footer_ngo">NGO Partners</a></li>
+        <li><a href="#how" data-key="footer_how">How It Works</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4 data-key="footer_legal">Legal</h4>
+      <ul>
+        <li><a href="#" data-key="footer_privacy">Privacy Policy</a></li>
+        <li><a href="#" data-key="footer_terms">Terms of Use</a></li>
+        <li><a href="#" data-key="footer_disclaimer_link">Medical Disclaimer</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span data-key="footer_copy">© 2025 SkinLens · Built for Ideation Summit Phase II</span>
+    <span data-key="footer_note">Not a medical device · <span class="accent">Awareness only</span></span>
+  </div>
+</footer>
+
+<script>
+// ─── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    nav_how: 'How it Works', nav_scan: 'Try It', nav_impact: 'Impact', nav_ngo: 'For NGOs',
+    nav_cta: 'Try Free Scan',
+    hero_tag: 'Ideation Summit Phase II — Tech & Innovation',
+    hero_h1: 'AI-Powered<br><em>Skin Risk</em><br>Awareness',
+    hero_sub: 'Skin Lens uses a trained AI model to analyze skin lesions and classify risk — making early awareness accessible to everyone, everywhere, for free.',
+    hero_cta1: 'Try a Free Scan', hero_cta2: 'Learn How It Works',
+    stat1: 'People with limited dermatology access', stat2: 'Survival rate if detected early',
+    stat3_num: 'Free', stat3: 'Always free for NGOs',
+    how_label: 'Process', how_h2: 'How Skin Lens Works',
+    how_desc: 'A simple four-step process that combines image quality validation with deep learning to provide responsible risk awareness.',
+    step1_h: 'Upload Image', step1_p: 'Take or upload a clear photo of the skin lesion. The system accepts JPEG and PNG formats and guides you for best results.',
+    step2_h: 'Quality Check', step2_p: 'Before analysis, Skin Lens validates image quality — checking lighting, focus, and clarity — to ensure accurate results.',
+    step3_h: 'AI Analysis', step3_p: 'Our AI model examines color, shape, and texture of the lesion to classify it into risk categories.',
+    step4_h: 'Risk Guidance', step4_p: 'Receive a clear risk level with actionable guidance. Not a diagnosis — a responsible nudge toward timely medical care.',
+    scan_label: 'AI Tool', scan_h2: 'Scan Your Skin Lesion',
+    scan_desc: 'Choose your scan type and upload an image for instant AI-powered risk awareness.',
+    quick_btn: '⚡ Quick Scan', detail_btn: '🔬 Detailed Scan',
+    quick_info_label: 'Quick Scan: ', quick_info_text: 'Instant risk awareness using our AI model. Results in seconds.',
+    detailed_info_label: 'Detailed Scan: ', detailed_info_text: 'Deep 4-day multi-pass analysis for comprehensive risk assessment.',
+    upload_h: 'Drop your image here', upload_p1: 'or', upload_browse: 'click to browse', upload_p2: 'Supports JPG, PNG · Max 10MB',
+    quality_label: 'Image Quality', analyze_btn: 'Analyze Lesion',
+    result_idle: 'Upload an image to see<br>your risk assessment here',
+    result_risk_label: 'Risk Level', result_conf_label: 'Confidence',
+    conf_label: 'Classification Confidence', guidance_h: 'Recommendation',
+    disclaimer: '⚠️ Skin Lens is an AI-based awareness tool, not a medical diagnostic device. Results are for informational purposes only. Always consult a qualified dermatologist for professional evaluation and diagnosis.',
+    risk_low: 'Low Risk', risk_moderate: 'Moderate Risk', risk_high: 'High Risk',
+    guidance_low: 'This lesion appears likely benign based on visual features. Continue regular self-monitoring and schedule a routine dermatology check during your next visit. No immediate action required.',
+    guidance_moderate: 'This lesion shows features that warrant medical attention. Please consult a dermatologist within 2–4 weeks for professional evaluation. Do not self-medicate or delay.',
+    guidance_high: 'This lesion shows characteristics associated with higher-risk conditions. Please consult a dermatologist urgently — within the next few days. This is not a diagnosis, but prompt professional evaluation is strongly advised.',
+    impact_label: 'Impact & Feasibility', impact_h2: 'Real-World Impact at Scale',
+    impact_desc: 'Skin Lens is designed for scalability, built with feasibility in mind, and focused on communities who need it most.',
+    impact1_h: 'Countries Affected', impact1_p: 'Dermatologist shortages affect rural and low-income regions globally, where early detection is most critical yet hardest to access.',
+    impact2_h: 'Better Outcomes', impact2_p: 'Skin cancers caught at stage 1 have up to 4× better survival outcomes than those detected at later stages.',
+    impact3_h: 'Cost to NGOs', impact3_p: 'Completely free access for registered non-profit organizations, enabling large-scale awareness campaigns with no barriers.',
+    ngo_badge: 'For NGOs & Community Organizations',
+    ngo_h2: 'Bring Skin Lens to<br>Your Community',
+    ngo_desc: 'Skin Lens is provided completely free of cost to NGOs and community health organizations. Partner with us to run large-scale screening camps and skin awareness programs in underserved areas.',
+    ngo_btn1: 'Register as NGO Partner', ngo_btn2: 'Download Partnership Kit',
+    footer_brand_desc: 'An AI-based skin risk awareness tool designed for accessibility, responsibility, and social impact.',
+    footer_product: 'Product', footer_quick: 'Quick Scan', footer_detailed: 'Detailed Scan',
+    footer_mission: 'Mission', footer_impact: 'Our Impact', footer_ngo: 'NGO Partners', footer_how: 'How It Works',
+    footer_legal: 'Legal', footer_privacy: 'Privacy Policy', footer_terms: 'Terms of Use', footer_disclaimer_link: 'Medical Disclaimer',
+    footer_copy: '© 2025 SkinLens · Built for Ideation Summit Phase II',
+    footer_note: 'Not a medical device · <span class="accent">Awareness only</span>',
+    doc_title: 'Recommended Specialists', doc_subtitle: 'Based on analysis',
+    result_analysis_label: 'Analysis',
+    book_btn: 'Book Consultation',
+    q_title: 'Patient Details', q_gender: 'Gender', q_age: 'Age Group', q_sun: 'Daily Sun Exposure',
+    q_select: 'Select...', q_male: 'Male', q_female: 'Female', q_other: 'Other',
+    q_sun_low: 'Low (< 1 hour)', q_sun_mod: 'Moderate (1-3 hours)', q_sun_high: 'High (> 3 hours)',
+    q_history: 'Family History', q_change: 'Has it changed?', q_symptoms: 'Itching/Bleeding?',
+    q_yes: 'Yes', q_no: 'No', q_unknown: 'Unknown',
+  },
+
+  hi: {
+    nav_how: 'यह कैसे काम करता है', nav_scan: 'आज़माएं', nav_impact: 'प्रभाव', nav_ngo: 'NGO के लिए',
+    nav_cta: 'मुफ़्त स्कैन करें',
+    hero_tag: 'Ideation Summit Phase II — Tech & Innovation',
+    hero_h1: 'AI-आधारित<br><em>त्वचा जोखिम</em><br>जागरूकता',
+    hero_sub: 'Skin Lens एक प्रशिक्षित AI मॉडल का उपयोग करके त्वचा के घावों का विश्लेषण करता है और जोखिम स्तर बताता है — ताकि हर कोई समय पर सतर्क हो सके, बिल्कुल मुफ़्त।',
+    hero_cta1: 'मुफ़्त स्कैन करें', hero_cta2: 'जानें कैसे काम करता है',
+    stat1: 'लोग जिनकी चर्मरोग तक सीमित पहुँच है', stat2: 'समय पर पता चलने पर जीवित रहने की दर',
+    stat3_num: 'मुफ़्त', stat3: 'NGO के लिए हमेशा मुफ़्त',
+    how_label: 'प्रक्रिया', how_h2: 'Skin Lens कैसे काम करता है',
+    how_desc: 'एक सरल चार-चरण प्रक्रिया जो छवि गुणवत्ता जाँच और AI विश्लेषण को मिलाकर जिम्मेदार जोखिम जागरूकता प्रदान करती है।',
+    step1_h: 'फोटो अपलोड करें', step1_p: 'त्वचा के घाव की एक स्पष्ट फोटो लें या अपलोड करें। सिस्टम JPEG और PNG फ़ॉर्मेट स्वीकार करता है।',
+    step2_h: 'गुणवत्ता जाँच', step2_p: 'विश्लेषण से पहले, Skin Lens छवि की गुणवत्ता की जाँच करता है — रोशनी, फोकस और स्पष्टता — सटीक परिणाम सुनिश्चित करने के लिए।',
+    step3_h: 'AI विश्लेषण', step3_p: 'हमारा AI मॉडल घाव के रंग, आकार और बनावट की जाँच करके उसे जोखिम श्रेणियों में वर्गीकृत करता है।',
+    step4_h: 'जोखिम मार्गदर्शन', step4_p: 'एक स्पष्ट जोखिम स्तर और कार्रवाई योग्य मार्गदर्शन प्राप्त करें। यह निदान नहीं है — समय पर चिकित्सा सहायता लेने की एक जिम्मेदार सलाह है।',
+    scan_label: 'AI टूल', scan_h2: 'अपनी त्वचा की जाँच करें',
+    scan_desc: 'स्कैन प्रकार चुनें और तत्काल AI-संचालित जोखिम जागरूकता के लिए एक फोटो अपलोड करें।',
+    quick_btn: '⚡ त्वरित स्कैन', detail_btn: '🔬 विस्तृत स्कैन',
+    quick_info_label: 'त्वरित स्कैन: ', quick_info_text: 'हमारे AI मॉडल का उपयोग करके तत्काल जोखिम जागरूकता। परिणाम कुछ सेकंड में।',
+    detailed_info_label: 'विस्तृत स्कैन: ', detailed_info_text: 'व्यापक जोखिम मूल्यांकन के लिए 4 दिन का गहन विश्लेषण।',
+    upload_h: 'यहाँ फोटो डालें', upload_p1: 'या', upload_browse: 'फ़ाइल चुनें', upload_p2: 'JPG, PNG समर्थित · अधिकतम 10MB',
+    quality_label: 'छवि गुणवत्ता', analyze_btn: 'विश्लेषण करें',
+    result_idle: 'जोखिम मूल्यांकन देखने के लिए<br>एक फोटो अपलोड करें',
+    result_risk_label: 'जोखिम स्तर', result_conf_label: 'विश्वसनीयता',
+    conf_label: 'वर्गीकरण विश्वसनीयता', guidance_h: 'सिफारिश',
+    disclaimer: '⚠️ Skin Lens एक AI-आधारित जागरूकता उपकरण है, न कि कोई चिकित्सा निदान उपकरण। परिणाम केवल जानकारी के लिए हैं। कृपया किसी योग्य चर्मरोग विशेषज्ञ से परामर्श लें।',
+    risk_low: 'कम जोखिम', risk_moderate: 'मध्यम जोखिम', risk_high: 'उच्च जोखिम',
+    guidance_low: 'यह घाव दृश्य विशेषताओं के आधार पर संभवतः सौम्य प्रतीत होता है। नियमित स्व-निगरानी जारी रखें और अगली बार किसी चर्मरोग विशेषज्ञ से नियमित जाँच करवाएं। तत्काल कोई कार्रवाई आवश्यक नहीं।',
+    guidance_moderate: 'इस घाव में ऐसी विशेषताएं हैं जो चिकित्सीय ध्यान की आवश्यकता दर्शाती हैं। कृपया 2–4 सप्ताह के भीतर किसी चर्मरोग विशेषज्ञ से मिलें। स्व-चिकित्सा न करें।',
+    guidance_high: 'इस घाव में उच्च जोखिम वाली स्थितियों से जुड़ी विशेषताएं हैं। कृपया तुरंत — अगले कुछ दिनों में — किसी चर्मरोग विशेषज्ञ से मिलें। यह निदान नहीं है, लेकिन शीघ्र पेशेवर मूल्यांकन अत्यधिक अनुशंसित है।',
+    impact_label: 'प्रभाव और व्यवहार्यता', impact_h2: 'वास्तविक जीवन में व्यापक प्रभाव',
+    impact_desc: 'Skin Lens को स्केलेबिलिटी के लिए डिज़ाइन किया गया है, व्यवहार्यता को ध्यान में रखकर बनाया गया है, और उन समुदायों पर ध्यान केंद्रित किया है जिन्हें इसकी सबसे अधिक आवश्यकता है।',
+    impact1_h: 'प्रभावित देश', impact1_p: 'चर्मरोग विशेषज्ञों की कमी विश्व भर के ग्रामीण और कम आय वाले क्षेत्रों को प्रभावित करती है।',
+    impact2_h: 'बेहतर परिणाम', impact2_p: 'चरण 1 में पकड़े गए त्वचा कैंसर में बाद के चरणों की तुलना में 4 गुना बेहतर जीवित रहने के परिणाम होते हैं।',
+    impact3_h: 'NGO के लिए लागत', impact3_p: 'पंजीकृत गैर-लाभकारी संगठनों के लिए पूरी तरह मुफ़्त पहुँच, कोई बाधा नहीं।',
+    ngo_badge: 'NGO और सामुदायिक संगठनों के लिए',
+    ngo_h2: 'Skin Lens को<br>अपने समुदाय में लाएं',
+    ngo_desc: 'Skin Lens NGO और सामुदायिक स्वास्थ्य संगठनों को पूरी तरह मुफ़्त प्रदान किया जाता है। वंचित क्षेत्रों में बड़े पैमाने पर स्क्रीनिंग शिविर चलाने के लिए हमारे साथ भागीदार बनें।',
+    ngo_btn1: 'NGO भागीदार के रूप में पंजीकरण करें', ngo_btn2: 'भागीदारी किट डाउनलोड करें',
+    footer_brand_desc: 'पहुँच, जिम्मेदारी और सामाजिक प्रभाव के लिए डिज़ाइन किया गया AI-आधारित त्वचा जोखिम जागरूकता उपकरण।',
+    footer_product: 'उत्पाद', footer_quick: 'त्वरित स्कैन', footer_detailed: 'विस्तृत स्कैन',
+    footer_mission: 'मिशन', footer_impact: 'हमारा प्रभाव', footer_ngo: 'NGO भागीदार', footer_how: 'यह कैसे काम करता है',
+    footer_legal: 'कानूनी', footer_privacy: 'गोपनीयता नीति', footer_terms: 'उपयोग की शर्तें', footer_disclaimer_link: 'चिकित्सा अस्वीकरण',
+    footer_copy: '© 2025 SkinLens · Ideation Summit Phase II के लिए बनाया गया',
+    footer_note: 'यह चिकित्सा उपकरण नहीं है · <span class="accent">केवल जागरूकता के लिए</span>',
+    doc_title: 'अनुशंसित विशेषज्ञ', doc_subtitle: 'विश्लेषण के आधार पर',
+    result_analysis_label: 'विश्लेषण',
+    book_btn: 'परामर्श बुक करें',
+    q_title: 'रोगी का विवरण', q_gender: 'लिंग', q_age: 'आयु समूह', q_sun: 'दैनिक धूप संपर्क',
+    q_select: 'चुनें...', q_male: 'पुरुष', q_female: 'महिला', q_other: 'अन्य',
+    q_sun_low: 'कम (< 1 घंटा)', q_sun_mod: 'मध्यम (1-3 घंटे)', q_sun_high: 'उच्च (> 3 घंटे)',
+    q_history: 'पारिवारिक इतिहास', q_change: 'क्या इसमें बदलाव आया है?', q_symptoms: 'खुजली/रक्तस्राव?',
+    q_yes: 'हाँ', q_no: 'नहीं', q_unknown: 'पता नहीं',
+  },
+
+  mr: {
+    nav_how: 'हे कसे काम करते', nav_scan: 'वापरून पहा', nav_impact: 'प्रभाव', nav_ngo: 'NGO साठी',
+    nav_cta: 'मोफत स्कॅन करा',
+    hero_tag: 'Ideation Summit Phase II — Tech & Innovation',
+    hero_h1: 'AI-आधारित<br><em>त्वचा धोका</em><br>जागृती',
+    hero_sub: 'Skin Lens एक प्रशिक्षित AI मॉडेल वापरून त्वचेच्या जखमांचे विश्लेषण करतो आणि धोक्याची पातळी सांगतो — सर्वांसाठी, सर्वत्र, मोफत।',
+    hero_cta1: 'मोफत स्कॅन करा', hero_cta2: 'हे कसे काम करते ते जाणा',
+    stat1: 'त्वचारोगतज्ज्ञांपर्यंत मर्यादित पोहोच असलेले लोक', stat2: 'वेळेवर आढळल्यास जगण्याचा दर',
+    stat3_num: 'मोफत', stat3: 'NGO साठी नेहमीच मोफत',
+    how_label: 'प्रक्रिया', how_h2: 'Skin Lens कसे काम करते',
+    how_desc: 'एक साधी चार-चरण प्रक्रिया जी प्रतिमा गुणवत्ता तपासणी आणि AI विश्लेषण एकत्र करून जबाबदार धोका जागृती प्रदान करते.',
+    step1_h: 'फोटो अपलोड करा', step1_p: 'त्वचेच्या जखमेचा एक स्पष्ट फोटो काढा किंवा अपलोड करा. सिस्टम JPEG आणि PNG स्वीकारते.',
+    step2_h: 'गुणवत्ता तपासणी', step2_p: 'विश्लेषणापूर्वी, Skin Lens प्रतिमेची गुणवत्ता तपासतो — प्रकाश, फोकस आणि स्पष्टता — अचूक निकालासाठी।',
+    step3_h: 'AI विश्लेषण', step3_p: 'आमचे AI मॉडेल जखमेचा रंग, आकार आणि पोत तपासून त्याचे धोका श्रेणींमध्ये वर्गीकरण करते.',
+    step4_h: 'धोका मार्गदर्शन', step4_p: 'स्पष्ट धोका पातळी आणि कृती करण्यायोग्य मार्गदर्शन मिळवा. हे निदान नाही — वेळेवर वैद्यकीय मदत घेण्याची जबाबदार सूचना.',
+    scan_label: 'AI साधन', scan_h2: 'तुमच्या त्वचेची तपासणी करा',
+    scan_desc: 'स्कॅनचा प्रकार निवडा आणि तत्काल AI-चालित धोका जागृतीसाठी फोटो अपलोड करा.',
+    quick_btn: '⚡ जलद स्कॅन', detail_btn: '🔬 सविस्तर स्कॅन',
+    quick_info_label: 'जलद स्कॅन: ', quick_info_text: 'AI मॉडेल वापरून तत्काल धोका जागृती. काही सेकंदात निकाल.',
+    detailed_info_label: 'सविस्तर स्कॅन: ', detailed_info_text: 'सर्वसमावेशक धोका मूल्यांकनासाठी 4 दिवसांचे सखोल विश्लेषण.',
+    upload_h: 'येथे फोटो टाका', upload_p1: 'किंवा', upload_browse: 'फाइल निवडा', upload_p2: 'JPG, PNG समर्थित · कमाल 10MB',
+    quality_label: 'प्रतिमा गुणवत्ता', analyze_btn: 'विश्लेषण करा',
+    result_idle: 'धोका मूल्यांकन पाहण्यासाठी<br>फोटो अपलोड करा',
+    result_risk_label: 'धोका पातळी', result_conf_label: 'विश्वासार्हता',
+    conf_label: 'वर्गीकरण विश्वासार्हता', guidance_h: 'शिफारस',
+    disclaimer: '⚠️ Skin Lens हे AI-आधारित जागृती साधन आहे, वैद्यकीय निदान उपकरण नाही. निकाल केवळ माहितीसाठी आहेत. कृपया पात्र त्वचारोगतज्ज्ञाचा सल्ला घ्या.',
+    risk_low: 'कमी धोका', risk_moderate: 'मध्यम धोका', risk_high: 'उच्च धोका',
+    guidance_low: 'ही जखम दृश्य वैशिष्ट्यांवर आधारित सौम्य असण्याची शक्यता आहे. नियमित स्व-निरीक्षण सुरू ठेवा आणि पुढील भेटीत त्वचारोगतज्ज्ञाकडे नियमित तपासणी करा. तातडीची कोणतीही कारवाई आवश्यक नाही.',
+    guidance_moderate: 'या जखमेत वैद्यकीय लक्ष आवश्यक असलेली वैशिष्ट्ये आहेत. कृपया 2–4 आठवड्यांच्या आत त्वचारोगतज्ज्ञाचा सल्ला घ्या. स्व-उपचार करू नका.',
+    guidance_high: 'या जखमेत उच्च धोकादायक स्थितींशी संबंधित वैशिष्ट्ये आहेत. कृपया तातडीने — पुढील काही दिवसांत — त्वचारोगतज्ज्ञाला भेट द्या. हे निदान नाही, परंतु त्वरित व्यावसायिक मूल्यांकन आवश्यक आहे.',
+    impact_label: 'प्रभाव आणि व्यवहार्यता', impact_h2: 'मोठ्या प्रमाणावर वास्तविक प्रभाव',
+    impact_desc: 'Skin Lens स्केलेबिलिटीसाठी डिझाइन केले आहे, व्यवहार्यतेचा विचार करून बनवले आहे आणि गरजू समुदायांवर लक्ष केंद्रित केले आहे.',
+    impact1_h: 'प्रभावित देश', impact1_p: 'त्वचारोगतज्ज्ञांची कमतरता जागतिक स्तरावर ग्रामीण आणि कमी उत्पन्न असलेल्या भागांना प्रभावित करते.',
+    impact2_h: 'चांगले परिणाम', impact2_p: 'पहिल्या टप्प्यात आढळलेल्या त्वचेच्या कर्करोगात नंतरच्या टप्प्यांपेक्षा 4 पट चांगले जगण्याचे परिणाम असतात.',
+    impact3_h: 'NGO साठी खर्च', impact3_p: 'नोंदणीकृत ना-नफा संस्थांसाठी पूर्णपणे मोफत, कोणताही अडथळा नाही.',
+    ngo_badge: 'NGO आणि सामुदायिक संस्थांसाठी',
+    ngo_h2: 'Skin Lens तुमच्या<br>समुदायात आणा',
+    ngo_desc: 'Skin Lens NGO आणि सामुदायिक आरोग्य संस्थांना पूर्णपणे मोफत दिले जाते. वंचित भागात मोठ्या प्रमाणावर तपासणी शिबिरे चालवण्यासाठी आमच्याशी भागीदारी करा.',
+    ngo_btn1: 'NGO भागीदार म्हणून नोंदणी करा', ngo_btn2: 'भागीदारी किट डाउनलोड करा',
+    footer_brand_desc: 'सुलभता, जबाबदारी आणि सामाजिक प्रभावासाठी डिझाइन केलेले AI-आधारित त्वचा धोका जागृती साधन.',
+    footer_product: 'उत्पादन', footer_quick: 'जलद स्कॅन', footer_detailed: 'सविस्तर स्कॅन',
+    footer_mission: 'मिशन', footer_impact: 'आमचा प्रभाव', footer_ngo: 'NGO भागीदार', footer_how: 'हे कसे काम करते',
+    footer_legal: 'कायदेशीर', footer_privacy: 'गोपनीयता धोरण', footer_terms: 'वापराच्या अटी', footer_disclaimer_link: 'वैद्यकीय अस्वीकरण',
+    footer_copy: '© 2025 SkinLens · Ideation Summit Phase II साठी बनवले',
+    footer_note: 'हे वैद्यकीय उपकरण नाही · <span class="accent">केवळ जागृतीसाठी</span>',
+    doc_title: 'शिफारस केलेले विशेषज्ञ', doc_subtitle: 'विश्लेषणावर आधारित',
+    result_analysis_label: 'विश्लेषण',
+    book_btn: 'सल्लामसलत बुक करा',
+    q_title: 'रुग्णाचे तपशील', q_gender: 'लिंग', q_age: 'वयोगट', q_sun: 'दैनिक सूर्यप्रकाश संपर्क',
+    q_select: 'निवडा...', q_male: 'पुरुष', q_female: 'स्त्री', q_other: 'इतर',
+    q_sun_low: 'कमी (< 1 तास)', q_sun_mod: 'मध्यम (1-3 तास)', q_sun_high: 'जास्त (> 3 तास)',
+    q_history: 'कौटुंबिक इतिहास', q_change: 'त्यात बदल झाला आहे का?', q_symptoms: 'खाज सुटणे/रक्तस्त्राव?',
+    q_yes: 'हो', q_no: 'नाही', q_unknown: 'माहित नाही',
+  }
+};
+
+// ─── LANGUAGE SWITCHER ────────────────────────────────────────────────────────
+let currentLang = 'en';
+let currentScanMode = 'quick';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.body.className = 'lang-' + lang;
+
+  // Update active button
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // Translate all data-key elements
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (T[lang][key] !== undefined) {
+      el.innerHTML = T[lang][key];
+    }
+  });
+
+  // Update scan info based on current scan mode
+  updateScanInfo();
+
+  // Re-apply title
+  document.title = lang === 'en' ? 'Skin Lens — AI-Based Skin Risk Awareness'
+    : lang === 'hi' ? 'Skin Lens — AI-आधारित त्वचा जोखिम जागरूकता'
+    : 'Skin Lens — AI-आधारित त्वचा धोका जागृती';
+}
+
+function updateScanInfo() {
+  const t = T[currentLang];
+  const info = document.getElementById('scan-info');
+  if (currentScanMode === 'quick') {
+    info.innerHTML = `<span style="color:var(--accent);font-weight:600">${t.quick_info_label}</span><span>${t.quick_info_text}</span>`;
+  } else {
+    info.innerHTML = `<span style="color:var(--accent3);font-weight:600">${t.detailed_info_label}</span><span>${t.detailed_info_text}</span>`;
+  }
+}
+
+// ─── SCAN MODE ────────────────────────────────────────────────────────────────
+function setScanMode(mode) {
+  currentScanMode = mode;
+  document.getElementById('quickBtn').classList.toggle('active', mode === 'quick');
+  document.getElementById('detailBtn').classList.toggle('active', mode === 'detailed');
+  updateScanInfo();
+}
+
+// ─── FILE UPLOAD ──────────────────────────────────────────────────────────────
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleFile({ target: { files: [file] } });
+});
+
+
+// ─── ANALYSIS ────────────────────────────────────────────────────────────────
+// ── API Configuration ─────────────────────────────────────────────────────
+// Change this to your deployed backend URL when hosting
+const API_BASE = window.location.origin;
+let selectedFile = null;
+let isQualityReady = false;
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('preview-img').src = ev.target.result;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('preview-container').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('questionnaireSection').style.display = 'block';
+    simulateQualityCheck();
+  };
+  reader.readAsDataURL(file);
+}
+
+function simulateQualityCheck() {
+  isQualityReady = false;
+  document.getElementById('qualityBar').style.display = 'block';
+  document.getElementById('qualityFill').style.width = '0%';
+  document.getElementById('qualityPct').textContent = '...';
+  document.getElementById('analyzeBtn').disabled = true;
+  setTimeout(() => {
+    document.getElementById('qualityFill').style.width = '85%';
+    document.getElementById('qualityPct').textContent = 'Ready';
+    isQualityReady = true;
+    checkFormValidity();
+  }, 500);
+}
+
+function checkFormValidity() {
+  const gender = document.getElementById('q-gender').value;
+  const age = document.getElementById('q-age').value;
+  const sun = document.getElementById('q-sun').value;
+  const history = document.getElementById('q-history').value;
+  const change = document.getElementById('q-change').value;
+  const symptoms = document.getElementById('q-symptoms').value;
+  const btn = document.getElementById('analyzeBtn');
+
+  if (isQualityReady && gender && age && sun && history && change && symptoms) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+}
+
+async function runAnalysis() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('analyzeBtn');
+  const text = document.getElementById('btnText');
+  const loader = document.getElementById('btnLoader');
+  btn.disabled = true;
+  text.style.display = 'none';
+  loader.style.display = 'block';
+
+  const formData = new FormData();
+  formData.append('image', selectedFile);
+  formData.append('gender', document.getElementById('q-gender').value);
+  formData.append('age', document.getElementById('q-age').value);
+  formData.append('sun', document.getElementById('q-sun').value);
+  formData.append('history', document.getElementById('q-history').value);
+  formData.append('change', document.getElementById('q-change').value);
+  formData.append('symptoms', document.getElementById('q-symptoms').value);
+
+  const endpoint = currentScanMode === 'quick'
+    ? `${API_BASE}/api/scan/quick`
+    : `${API_BASE}/api/scan/detailed`;
+
+  try {
+    const response = await fetch(endpoint, { method: 'POST', body: formData });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showError(data.error || 'Analysis failed. Please try again.');
+      return;
+    }
+
+    if (currentScanMode === 'detailed' && data.job_id) {
+      showPolling(data.job_id);
+    } else {
+      if (data.quality) {
+        const q = data.quality.score;
+        document.getElementById('qualityFill').style.width = q + '%';
+        document.getElementById('qualityPct').textContent = q + '%';
+      }
+      showResults(data);
+    }
+  } catch (err) {
+    showError('Cannot connect to server. Make sure the Flask backend is running on port 5000.');
+    console.error(err);
+  } finally {
+    text.style.display = 'block';
+    loader.style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+function showPolling(jobId) {
+  document.getElementById('resultIdle').style.display = 'flex';
+  document.getElementById('result-output').style.display = 'none';
+  document.getElementById('resultIdle').querySelector('p').innerHTML =
+    '🔄 Detailed analysis running...<br><small>Checking every 5 seconds</small>';
+
+  const poll = setInterval(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/scan/status/${jobId}`);
+      const data = await res.json();
+      if (data.status === 'complete') {
+        clearInterval(poll);
+        document.getElementById('resultIdle').querySelector('p').innerHTML = T[currentLang].result_idle;
+        showResults(data.result);
+      } else if (data.status === 'error') {
+        clearInterval(poll);
+        showError('Detailed analysis failed. Please try again.');
+      }
+    } catch (e) { clearInterval(poll); }
+  }, 5000);
+}
+
+function showError(msg) {
+  document.getElementById('resultIdle').style.display = 'none';
+  document.getElementById('result-output').style.display = 'block';
+  document.getElementById('riskBadge').textContent = 'Error';
+  document.getElementById('riskBadge').className = 'risk-badge risk-high';
+  document.getElementById('guidanceText').textContent = msg;
+  document.getElementById('confBars').innerHTML = '';
+}
+
+function detachImage() {
+  selectedFile = null;
+  isQualityReady = false;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('preview-img').src = '';
+  document.getElementById('file-name').textContent = '';
+  document.getElementById('preview-container').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('questionnaireSection').style.display = 'none';
+  document.getElementById('q-gender').value = '';
+  document.getElementById('q-age').value = '';
+  document.getElementById('q-sun').value = '';
+  document.getElementById('q-history').value = '';
+  document.getElementById('q-change').value = '';
+  document.getElementById('q-symptoms').value = '';
+  document.getElementById('qualityBar').style.display = 'none';
+  document.getElementById('qualityFill').style.width = '0%';
+  document.getElementById('qualityPct').textContent = '—';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('result-output').style.display = 'none';
+  document.getElementById('resultIdle').style.display = 'flex';
+  document.getElementById('scan').scrollIntoView({behavior: 'smooth'});
+}
+
+// ─── DOCTOR DATA ──────────────────────────────────────────────────────────────
+const DOCTORS = {
+  'Melanoma': [
+    { name: 'Dr. Sarah Chen', spec: 'Oncologic Dermatology', loc: 'Skin Cancer Center', img: 'https://i.pravatar.cc/150?u=1' },
+    { name: 'Dr. James Wilson', spec: 'Melanoma Specialist', loc: 'City Hospital', img: 'https://i.pravatar.cc/150?u=2' }
+  ],
+  'Carcinoma': [
+    { name: 'Dr. Emily Davis', spec: 'Mohs Surgery', loc: 'Dermatology Associates', img: 'https://i.pravatar.cc/150?u=3' },
+    { name: 'Dr. Michael Brown', spec: 'Skin Oncology', loc: 'General Hospital', img: 'https://i.pravatar.cc/150?u=4' }
+  ],
+  'Nevus': [
+    { name: 'Dr. Anita Patel', spec: 'Pigmented Lesions', loc: 'Skin Health Clinic', img: 'https://i.pravatar.cc/150?u=5' },
+    { name: 'Dr. Robert Kim', spec: 'General Dermatology', loc: 'Wellness Center', img: 'https://i.pravatar.cc/150?u=6' }
+  ],
+  'default': [
+    { name: 'Dr. Lisa Wang', spec: 'General Dermatology', loc: 'City Skin Clinic', img: 'https://i.pravatar.cc/150?u=8' },
+    { name: 'Dr. David Miller', spec: 'Clinical Dermatology', loc: 'Community Health', img: 'https://i.pravatar.cc/150?u=9' }
+  ]
+};
+
+function showResults(data) {
+  const t = T[currentLang];
+  document.getElementById('resultIdle').style.display = 'none';
+  document.getElementById('result-output').style.display = 'block';
+
+  const badge = document.getElementById('riskBadge');
+  const riskKeyMap = { low: 'risk_low', moderate: 'risk_moderate', high: 'risk_high' };
+  badge.textContent = t[riskKeyMap[data.risk_level]] || data.risk_label;
+  badge.className = 'risk-badge risk-' + data.risk_level;
+  document.getElementById('topClass').textContent = data.top_class;
+
+  const guidanceKeyMap = { low: 'guidance_low', moderate: 'guidance_moderate', high: 'guidance_high' };
+  const guidanceText = (data.guidance && data.guidance[currentLang])
+    ? data.guidance[currentLang]
+    : t[guidanceKeyMap[data.risk_level]];
+  document.getElementById('guidanceText').textContent = guidanceText;
+
+  const bars = document.getElementById('confBars');
+  bars.innerHTML = '';
+  
+  let topClass = null;
+  let maxProb = -1;
+
+  (data.classes || []).forEach(c => {
+    if (c.probability > maxProb) {
+      maxProb = c.probability;
+      topClass = c.name;
+    }
+    const row = document.createElement('div');
+    row.className = 'conf-row';
+    row.innerHTML = `<span class="conf-name">${c.name}</span>
+      <div class="conf-track"><div class="conf-fill" style="background:${c.color};width:0%" data-w="${c.probability}%"></div></div>
+      <span class="conf-pct">${c.probability}%</span>`;
+    bars.appendChild(row);
+  });
+  setTimeout(() => bars.querySelectorAll('.conf-fill').forEach(el => el.style.width = el.dataset.w), 100);
+
+  // Show Doctors
+  const docSection = document.getElementById('doctorSection');
+  const docGrid = document.getElementById('doctorGrid');
+  docGrid.innerHTML = '';
+  
+  const conditionKey = Object.keys(DOCTORS).find(k => (topClass || '').toLowerCase().includes(k.toLowerCase())) || 'default';
+  const docs = DOCTORS[conditionKey] || DOCTORS['default'];
+
+  docs.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'doctor-card';
+    card.innerHTML = `<img src="${d.img}" class="doctor-img" alt="${d.name}">
+      <div class="doctor-info"><h4>${d.name}</h4><p>${d.spec}<br>${d.loc}</p><a href="#" class="doctor-action">${t.book_btn} →</a></div>`;
+    docGrid.appendChild(card);
+  });
+  docSection.style.display = 'block';
+
+  if (data.demo_mode) {
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:0.7rem;color:var(--accent3);margin-top:0.8rem;font-style:italic;';
+    note.textContent = 'Demo mode — model not loaded. Train your CNN and place it at model/skin_lens_cnn.h5';
+    document.getElementById('result-output').appendChild(note);
+  }
+}
+
+// ─── CURSOR ───────────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 5 + 'px';
+  cursor.style.top = my - 5 + 'px';
+});
+function animRing() {
+  rx += (mx - rx - 18) * 0.12; ry += (my - ry - 18) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+// ─── SCROLL ANIMATIONS ────────────────────────────────────────────────────────
+const obs = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
