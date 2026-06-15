@@ -387,20 +387,28 @@ SkinLens delivers all risk guidance and clinical recommendations in three langua
 
 ## 🗺 Roadmap
 
-### Current — Build Phase
-- [x] Flask REST API with quick + detailed scan endpoints
-- [x] 9-factor weighted questionnaire scoring algorithm
-- [x] Image quality validation with per-check feedback
-- [x] Trilingual guidance output (EN / HI / MR)
-- [x] Privacy-by-design — auto-deletion of uploaded images after processing
+### Current Features
 
-### Upcoming
-- [ ] **Inclusive Dataset** — Partner with Indian dermatology institutions to build a dataset better representing Indian skin tones and regional conditions
-- [ ] **Advanced Image Quality** — Real-time capture guidance using the device camera API
-- [ ] **Dermatologist Connect** — Location-aware referral system integrated with doctor availability
-- [ ] **Context-Aware Analysis** — Further refinement of questionnaire weighting based on clinical validation
-- [ ] **Community & NGO Integration** — Outreach partnerships for rural and underserved populations
-- [ ] **Mobile App** — Native iOS and Android builds for offline-capable screening
+* MobileNetV2-based skin lesion analysis
+* 9-factor questionnaire-based clinical risk assessment
+* Combined CNN + questionnaire risk scoring
+* Explainable risk-factor reporting
+* Trilingual guidance output (English / Hindi / Marathi)
+* Privacy-first processing with automatic image deletion after analysis
+* Web-based deployment and real-time prediction pipeline
+
+### Future Improvements
+
+* **Cancer Risk Classification** — Expand from melanoma-focused detection to broader cancer-risk assessment by distinguishing potentially cancerous lesions from lower-risk benign lesions.
+* **Multi-Class Lesion Identification** — Predict probable lesion categories such as melanoma, basal cell carcinoma (BCC), actinic keratosis (AKIEC), benign nevus, and other lesion types.
+* **Grad-CAM Explainability** — Generate visual heatmaps highlighting the image regions that most influenced the CNN's prediction.
+* **Advanced Scan Mode** — Multi-pass inference and confidence aggregation for more robust and reliable predictions.
+* **Inclusive Dataset Expansion** — Improve representation of Indian skin tones and region-specific dermatological conditions.
+* **Advanced Image Quality Assessment** — Real-time camera guidance and image quality feedback before analysis.
+* **Clinical Validation & Risk Refinement** — Improve questionnaire weighting and risk calibration through expert review and testing.
+* **Dermatologist Connect** — Location-aware referral and specialist discovery system.
+* **Community & NGO Integration** — Outreach support for rural and underserved populations.
+* **Mobile Application** — Native Android and iOS applications with offline-capable screening support.
 
 ---
 
@@ -410,16 +418,10 @@ SkinLens delivers all risk guidance and clinical recommendations in three langua
 
 | Name | Role |
 |------|------|
-| Akansha Wadhwani | `[Role — TBD]` |
-| Himanshi Thakur | `[Role — TBD]` |
-| Jayvee Shah | `[Role — TBD]` |
-| Kalindi Joshi | `[Role — TBD]` |
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+| Akansha Wadhwani | `AI and Model development` |
+| Himanshi Thakur | `Design & Documentation` |
+| Jayvee Shah | `Website Development + Project Deployment` |
+| Kalindi Joshi | `AI and Model development` |
 
 ---
 
