@@ -1,7 +1,8 @@
 import os
 import numpy as np
 from PIL import Image
-import tensorflow as tf
+# Import the tiny runtime interpreter package instead of full heavy TensorFlow
+import tflite_runtime.interpreter as tflite
 
 # ==========================
 # CONFIG
@@ -10,30 +11,36 @@ import tensorflow as tf
 IMG_SIZE = (224, 224)
 
 # ==========================
-# LOAD MODEL (Updated to point inside subfolder)
+# LOAD MODEL (Updated to utilize the lightweight .tflite engine)
 # ==========================
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'skinlens_model.keras')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'skinlens_model.tflite')
 
 try:
-    # compile=False bypasses local environment optimizer state conflicts safely
-    model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    print("Initializing TFLite Interpreter...")
+    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
+    interpreter.allocate_tensors()
+    
+    # Extract input/output details for execution mapping
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
 except Exception as e:
-    print(f"❌ Critical Error loading model from {MODEL_PATH}: {str(e)}")
-    model = None
+    print(f"❌ Critical Error loading lightweight model from {MODEL_PATH}: {str(e)}")
+    interpreter = None
 
 # Helper method for app.py to confirm loading state
 def is_model_loaded():
-    return model is not None
+    return interpreter is not None
 
 # ==========================
 # IMAGE PREDICTION
 # ==========================
 
 def predict_image(image_path):
-    if model is None:
+    if interpreter is None:
         return {"image_assessment": "Model Engine Offline", "cnn_risk": 0.0}
 
+    # Preprocess image precisely as trained
     image = Image.open(image_path)
     image = image.convert("RGB")
     image = image.resize(IMG_SIZE)
@@ -41,12 +48,12 @@ def predict_image(image_path):
     image = image / 255.0
     image = np.expand_dims(image, axis=0)
 
-    probability = float(
-        model.predict(
-            image,
-            verbose=0
-        )[0][0]
-    )
+    # Invoke the ultra-lightweight TFLite engine inference pipeline
+    interpreter.set_tensor(input_details[0]['index'], image)
+    interpreter.invoke()
+    
+    # Retrieve structural output probabilities from tensor arrays
+    probability = float(interpreter.get_tensor(output_details[0]['index'])[0][0])
 
     cnn_risk = round(
         probability * 100,

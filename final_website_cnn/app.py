@@ -120,4 +120,8 @@ def quick_scan():
         cleanup_file(image_path)
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5001)
+    import os
+    # Render assigns a dynamic port via the PORT environment variable
+    port = int(os.environ.get("PORT", 5000))
+    # Must bind to 0.0.0.0 in production so external traffic can reach it
+    app.run(host="0.0.0.0", port=port)
