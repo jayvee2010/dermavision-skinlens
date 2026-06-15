@@ -75,6 +75,13 @@ def preprocess_image(image_path):
 
     return image
 
+
+def prepare_dataframe():
+    df = load_metadata()
+    df = add_image_paths(df)
+
+    return df
+
 # ==========================
 # VERIFY PIPELINE
 # ==========================
@@ -99,9 +106,3 @@ if __name__ == "__main__":
     print("Min Pixel:", sample_image.min())
 
     print("Max Pixel:", sample_image.max())
-
-    def prepare_dataframe():
-        df = load_metadata()
-        df = add_image_paths(df)
-
-        return df
