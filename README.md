@@ -331,40 +331,6 @@ Runs instant CNN inference and calculates the weighted clinical risk score.
 
 ---
 
-### `POST /api/scan/detailed`
-
-Queues a background detailed scan with TTA. Returns a `job_id` to poll.
-
-**Response `202`:**
-```json
-{
-  "job_id": "a3f9e12bc0d84f...",
-  "status": "queued",
-  "quality": { "score": 88, "passed": true }
-}
-```
-
----
-
-### `GET /api/scan/status/<job_id>`
-
-Poll for the result of a detailed scan job.
-
-**Response — while processing:**
-```json
-{ "status": "processing" }
-```
-
-**Response — on completion:**
-```json
-{
-  "status": "complete",
-  "result": { ... },
-  "completed_at": "2026-06-10T12:34:56"
-}
-```
-
----
 
 ### `GET /api/health`
 
@@ -422,7 +388,6 @@ SkinLens delivers all risk guidance and clinical recommendations in three langua
 ## 🗺 Roadmap
 
 ### Current — Build Phase
-- [x] MobileNetV2 CNN training pipeline (two-phase fine-tuning)
 - [x] Flask REST API with quick + detailed scan endpoints
 - [x] 9-factor weighted questionnaire scoring algorithm
 - [x] Image quality validation with per-check feedback
