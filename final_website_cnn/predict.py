@@ -2,7 +2,14 @@ import os
 import numpy as np
 from PIL import Image
 # Import the tiny runtime interpreter package instead of full heavy TensorFlow
-import tflite_runtime.interpreter as tflite
+from PIL import Image
+
+try:
+    # Render will use this lightweight runtime package
+    import tflite_runtime.interpreter as tflite
+except ImportError:
+    # Your Mac will seamlessly fall back to this since full TensorFlow is installed
+    import tensorflow.lite as tflite
 
 # ==========================
 # CONFIG
