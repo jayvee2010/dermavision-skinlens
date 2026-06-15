@@ -13,7 +13,7 @@
 **Upload. Analyse. Act.**  
 *Skin cancer screening made accessible for every Indian — in the language they speak, on the phone they carry.*
 
-[🌐 Live Demo](https://dermavision-skinlens.onrender.com/) · [📖 Docs](#-technology-stack) · [🤝 Team](#-team)
+[🌐 Live Demo- Website link](https://dermavision-skinlens.onrender.com/) · [📖 Docs](#-technology-stack) · [🤝 Team](#-team)
 
 ---
 
