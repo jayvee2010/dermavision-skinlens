@@ -76,9 +76,9 @@ Results are mathematically combined into three risk tiers and delivered with **a
 │   lesion image       (history, changes,    patterns. Algorithm      │
 │                       symptoms, age,        calculates weighted     │
 │                       sun exposure)         combined risk score     │
-│                                             (70% AI / 30% Form)    │
+│                                             (70% AI / 30% Form)     │
 │                              ↓                                      │
-│   🩺 Dermatologist       📄 Report           🎯 Final Verdict       │
+│   🩺 Dermatologist       📄 Report           🎯 Final Verdict      │
 │   ─────────────────      ──────────          ────────────           │
 │   Connect to nearby  ←   Quick overview  ←   Low / Moderate /       │
 │   doctors for high       or detailed          High — with           │
@@ -92,7 +92,7 @@ Results are mathematically combined into three risk tiers and delivered with **a
 | Mode | Speed | Method | Best For |
 |------|-------|--------|---------|
 | **Quick Scan** | ~2 seconds | Single-pass CNN inference + metadata scoring | First-look screening |
-| **Detailed Scan** | ~10 seconds | Multi-pass with Test-Time Augmentation (TTA) | Higher confidence results |
+| **Detailed Scan** | ~4 days | Multi-pass with Test-Time Augmentation (TTA) | Higher confidence results |
 
 ---
 
