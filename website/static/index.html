@@ -510,6 +510,13 @@
               </select>
             </div>
             <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_pain">What is the pain level?</label>
+              <select id="q-pain" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="low" data-key="q_pain_low">Low </option><option value="moderate" data-key="q_pain_mod">Moderate </option><option value="high" data-key="q_pain_high">High </option>
+              </select>
+            </div>
+            <div>
               <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_history">Family History</label>
               <select id="q-history" class="q-input" onchange="checkFormValidity()">
                 <option value="" data-key="q_select">Select...</option>
@@ -518,7 +525,42 @@
               </select>
             </div>
             <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_history">What is the duration of change?</label>
+              <select id="q-dur" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="rapid" data-key="q_rapid">Rapid</option>
+                <option value="slow" data-key="q_slow">Slow</option>
+              </select>
+            </div>
+            <div>
               <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_change">Has it changed?</label>
+              <select id="q-change" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yesd" data-key="q_yesd">Yes-it is developing more</option>
+                <option value="yesr" data-key="q_yesr">Yes-it has reduced</option>
+                <option value="no" data-key="q_no">No</option>
+                <option value="unknown" data-key="q_unknown">Unknown</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_change">Was it an existing mole?</label>
+              <select id="q-existing" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yes" data-key="q_yes">Yes</option>
+                <option value="no" data-key="q_no">No</option>
+                <option value="unknown" data-key="q_unknown">Unknown</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_symptoms">Is it Itching?</label>
+              <select id="q-symptoms" class="q-input" onchange="checkFormValidity()">
+                <option value="" data-key="q_select">Select...</option>
+                <option value="yes" data-key="q_yes">Yes</option>
+                <option value="no" data-key="q_no">No</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_change">Is it bleeding?</label>
               <select id="q-change" class="q-input" onchange="checkFormValidity()">
                 <option value="" data-key="q_select">Select...</option>
                 <option value="yes" data-key="q_yes">Yes</option>
@@ -527,11 +569,12 @@
               </select>
             </div>
             <div>
-              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_symptoms">Itching/Bleeding?</label>
-              <select id="q-symptoms" class="q-input" onchange="checkFormValidity()">
+              <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem;" data-key="q_change">Is it oozing?</label>
+              <select id="q-change" class="q-input" onchange="checkFormValidity()">
                 <option value="" data-key="q_select">Select...</option>
                 <option value="yes" data-key="q_yes">Yes</option>
                 <option value="no" data-key="q_no">No</option>
+                <option value="unknown" data-key="q_unknown">Unknown</option>
               </select>
             </div>
           </div>
