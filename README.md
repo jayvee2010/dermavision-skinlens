@@ -418,7 +418,7 @@ SkinLens delivers all risk guidance and clinical recommendations in three langua
 
 | Name | Role |
 |------|------|
-| Akansha Wadhwani | `AI and Model development` |
+| Akansha Wadhwani | `Model Development & PPTs` |
 | Himanshi Thakur | `Design & Documentation` |
 | Jayvee Shah | `Website Development + Project Deployment` |
 | Kalindi Joshi | `AI and Model development` |
