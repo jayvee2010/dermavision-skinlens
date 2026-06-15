@@ -27,7 +27,6 @@
 - [Technology Stack](#-technology-stack)
 - [AI Model & Risk Algorithm](#-ai-model--risk-algorithm)
 - [Project Structure](#-project-structure)
-- [Setup Instructions](#-setup-instructions)
 - [API Reference](#-api-reference)
 - [Image Quality Standards](#-image-quality-standards)
 - [Risk Classification](#-risk-classification)
@@ -56,8 +55,9 @@ SkinLens is a **mobile-first, AI-powered skin risk awareness web platform** that
 
 The platform combines two distinct data sources to generate a **personalised, weighted risk assessment**:
 
-1. **Computer Vision (70% Weight)** — A fine-tuned CNN analyses the uploaded lesion image for shape irregularities, border patterns, colour variation, and texture anomalies
-2. **Patient Metadata (30% Weight)** — A dynamic 9-factor clinical questionnaire (age, sun exposure, family history, lesion duration, physical changes, and symptoms) accurately grounds the AI's visual findings in real-world patient context
+1. **Computer Vision (70% Weight)** — A fine-tuned MobileNetV2 CNN analyses the uploaded lesion image to identify visual patterns commonly associated with suspicious skin lesions, helping estimate the likelihood of melanoma-like characteristics.
+2. **Patient Metadata (30% Weight)** — A dynamic 9-factor clinical questionnaire (including age, sun exposure, family history, lesion duration, physical changes, and symptoms) enhances the AI's image-based assessment by integrating real-world patient context and risk indicators into the final evaluation.
+
 
 Results are mathematically combined into three risk tiers and delivered with **actionable guidance in English, Hindi, and Marathi**. High-risk results include a prompt to connect with a nearby dermatologist.
 
@@ -92,7 +92,7 @@ Results are mathematically combined into three risk tiers and delivered with **a
 | Mode | Speed | Method | Best For |
 |------|-------|--------|---------|
 | **Quick Scan** | ~2 seconds | Single-pass CNN inference + metadata scoring | First-look screening |
-| **Detailed Scan** | ~4 days | Multi-pass with Test-Time Augmentation (TTA) | Higher confidence results |
+| **Detailed Scan** (future development) | ~4 days | Multi-pass with Test-Time Augmentation (TTA) | Higher confidence results |
 
 ---
 
@@ -110,13 +110,13 @@ Results are mathematically combined into three risk tiers and delivered with **a
 ### AI & Machine Learning
 
 | Component | Technology | Purpose |
-|-----------|------------|---------|
-| Deep Learning Framework | TensorFlow ≥ 2.13 | Model training & inference |
-| Base Architecture | MobileNetV2 (Keras) | Pretrained ImageNet backbone |
-| Image Processing | Pillow ≥ 10.0 | Image loading, resizing, preprocessing |
-| Numerical Computing | NumPy ≥ 1.24 | Array ops, probability computation |
-| Training Utilities | scikit-learn ≥ 1.3 | Class weighting, evaluation metrics |
-| Visualisation | Matplotlib ≥ 3.7 | Training history plots |
+|------------|------------|------------|
+| Deep Learning Framework | TensorFlow / Keras | Model training and inference |
+| Base Architecture | MobileNetV2 | Pretrained ImageNet backbone for skin lesion classification |
+| Image Processing | Pillow (PIL) | Image loading, resizing, and preprocessing |
+| Numerical Computing | NumPy | Array operations and prediction processing |
+| Data Processing | Pandas | Dataset loading and preprocessing |
+| Training Utilities | Scikit-learn | Train-validation split, class weighting, and evaluation |
 
 ### Frontend
 
@@ -132,89 +132,111 @@ Results are mathematically combined into three risk tiers and delivered with **a
 
 ### Architecture
 
-SkinLens uses a **fine-tuned MobileNetV2** CNN — chosen for its balance of accuracy, inference speed (~0.3s on CPU), and small model footprint (~14MB).
+SkinLens uses a **fine-tuned MobileNetV2** convolutional neural network (CNN) trained on the HAM10000 skin lesion dataset. MobileNetV2 was selected for its lightweight architecture, fast inference, and strong transfer-learning capabilities.
 
+```text
+Input Image (224×224×3)
+          ↓
+MobileNetV2 Backbone
+(Pretrained on ImageNet)
+          ↓
+GlobalAveragePooling2D
+          ↓
+Dropout (0.3)
+          ↓
+Dense (1, Sigmoid)
+          ↓
+Melanoma Risk Probability
 ```
-Input (224×224×3)
-      ↓
-MobileNetV2 Backbone (pretrained on ImageNet)
-      ↓
-GlobalAveragePooling2D → BatchNormalization
-      ↓
-Dense(256, ReLU) → Dropout(0.4)
-      ↓
-Dense(128, ReLU) → Dropout(0.3)
-      ↓
-Dense(6, Softmax)  ← 6 output classes
-```
 
-### Output Classes
+### Classification Approach
 
-| ID | Class | Risk Tier | Colour |
-|----|-------|-----------|--------|
-| 0 | Benign Nevus | 🟢 Low | `#c8f560` |
-| 1 | Seborrheic Keratosis | 🟢 Low | `#c8f560` |
-| 2 | Dysplastic Nevus | 🟡 Moderate | `#f5a623` |
-| 3 | Basal Cell Carcinoma (BCC) | 🟡 Moderate | `#f5a623` |
-| 4 | Melanoma | 🔴 High | `#ff6b6b` |
-| 5 | Squamous Cell Carcinoma (SCC) | 🔴 High | `#ff6b6b` |
+The model performs **binary classification** by estimating the probability that an uploaded lesion exhibits **melanoma-like characteristics**.
+
+| Output | Interpretation                                 |
+| ------ | ---------------------------------------------- |
+| 0      | No significant melanoma-like patterns detected |
+| 1      | Melanoma-like patterns detected                |
+
+The CNN serves as a screening component and is combined with patient-provided clinical information for a more comprehensive risk assessment.
 
 ### Dataset
 
-Trained on the **[ISIC (International Skin Imaging Collaboration)](https://www.isic-archive.com/)** dataset — the gold standard open-access skin lesion dataset used in academic dermatology AI research.
+The model was trained using the **HAM10000 (Human Against Machine with 10,000 Training Images)** dataset, one of the most widely used public dermatology imaging datasets.
+
+For this project:
+
+* **Melanoma (mel)** images were treated as the positive class.
+* All other lesion categories were grouped as the negative class.
+* Class weights were applied during training to address dataset imbalance and improve melanoma detection sensitivity.
 
 ### Training Strategy
 
-The model is trained in two phases to maximise performance while avoiding overfitting:
+The training process leveraged transfer learning using pretrained ImageNet weights.
 
-**Phase 1 — Head Training (10 epochs)**
-- MobileNetV2 backbone frozen
-- Only the custom classification head is trained
-- Allows the new head to stabilise before touching backbone weights
+**Feature Extraction Phase**
 
-**Phase 2 — Fine-Tuning (20 epochs)**
-- Top 30 layers of MobileNetV2 unfrozen
-- Learning rate reduced 10× (`1e-5`) to avoid destroying pretrained features
-- Class weights applied to handle dataset imbalance
+* MobileNetV2 initialized with pretrained ImageNet weights.
+* Classification head trained on skin lesion images.
+* Backbone initially frozen to retain learned visual features.
 
-**Data Augmentation**
-```python
-rotation_range=30, width_shift=0.15, height_shift=0.15,
-shear_range=0.1, zoom_range=0.2,
-horizontal_flip=True, vertical_flip=True,
-brightness_range=[0.8, 1.2]
+**Fine-Tuning Phase**
+
+* MobileNetV2 layers unfrozen for further training.
+* Model adapted to skin lesion characteristics present in HAM10000.
+* Class weighting applied to reduce bias caused by class imbalance.
+
+### Questionnaire-Based Clinical Assessment
+
+Visual analysis alone cannot capture all patient-specific risk factors. SkinLens incorporates a **9-factor questionnaire** to provide additional clinical context.
+
+The questionnaire evaluates:
+
+* Age group
+* Gender
+* Daily sun exposure
+* Family history of skin cancer
+* Pain level
+* Duration of lesion change
+* Observable lesion development
+* Existing mole history
+* Symptoms such as itching, bleeding, and oozing
+
+Each response contributes to a weighted risk score based on commonly recognized dermatological risk indicators.
+
+### Final Risk Calculation
+
+SkinLens combines image-based risk assessment with questionnaire-based clinical context using a weighted scoring approach:
+
+```text
+Final Risk Score =
+(0.7 × CNN Risk Score)
++
+(0.3 × Questionnaire Risk Score)
 ```
 
-**Test-Time Augmentation (TTA)**  
-For detailed scans, inference runs over 4 variants (original + horizontal flip + vertical flip + both) and averages the results — improving reliability without retraining.
+### Risk Categories
 
-### The 9-Factor Questionnaire Scoring Algorithm
+| Risk Level       | Final Score |
+| ---------------- | ----------- |
+| 🟢 Low Risk      | < 30        |
+| 🟡 Moderate Risk | 30 – 59     |
+| 🔴 High Risk     | ≥ 60        |
 
-Visual AI is imperfect without clinical context. SkinLens evaluates 9 specific patient parameters to generate a **Questionnaire Score** (out of 120, capped at 100). Points are mathematically weighted based on established dermatological risk factors:
+### Explainability
 
-| Risk Factor | Trigger Condition | Weight Penalty |
-|-------------|-------------------|---------------|
-| Age | 36–50 / 51–65 / 65+ | +5 / +10 / +15 |
-| Sun Exposure | Moderate / High | +5 / +10 |
-| Family History | Yes | +15 |
-| Duration | Slow change / Rapid change | +5 / +15 |
-| Lesion Changing | Yes (developing) / Unknown | +20 / +5 |
-| Existing Mole | Yes / Unknown | +10 / +5 |
-| Itching | Yes | +10 |
-| Bleeding | Yes / Unknown | +20 / +5 |
-| Oozing | Yes / Unknown | +15 / +5 |
+Rather than returning only a prediction, SkinLens provides:
 
-### The Final Risk Calculation
+* CNN-based image assessment
+* Questionnaire-based risk assessment
+* Combined risk score
+* Risk category
+* Key contributing risk factors identified from questionnaire responses
 
-The final risk tier is determined using a strict **70/30 weighted formula** — ensuring visual evidence leads the assessment, while severe clinical symptoms can still cross the threshold independently:
+This helps users understand which factors influenced the final assessment while maintaining transparency in the decision-making process.
 
-```
-Final Risk Score = (0.7 × CNN Score) + (0.3 × Questionnaire Score)
+> **Disclaimer:** SkinLens is intended as a screening and awareness tool only. It does not provide a medical diagnosis and should not replace consultation with a qualified dermatologist.
 
-🟢 Low Risk      →  Final Score < 30
-🟡 Moderate Risk →  Final Score 30–59
-🔴 High Risk     →  Final Score ≥ 60
-```
 
 ---
 
@@ -249,102 +271,6 @@ skinlens/
 │
 └── uploads/                # Temp storage for uploaded images (auto-deleted)
 ```
-
----
-
-## 🚀 Setup Instructions
-
-### Prerequisites
-
-- Python 3.10+ (developed on 3.12.7)
-- pip
-- 4GB+ RAM recommended for TensorFlow
-- GPU optional but significantly speeds up training
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-org/skinlens.git
-cd skinlens
-```
-
-### 2. Create a Virtual Environment
-
-```bash
-python -m venv venv
-
-# macOS / Linux
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-> **Note:** TensorFlow installation can take a few minutes. For GPU support, replace `tensorflow` with `tensorflow-gpu` in `requirements.txt` and ensure CUDA is configured.
-
-### 4. Prepare the Dataset (for training)
-
-Download the [ISIC dataset](https://www.isic-archive.com/) and organise it as follows:
-
-```
-data/
-  train/
-    benign_nevus/           ← ~1000+ images per class recommended
-    seborrheic_keratosis/
-    dysplastic_nevus/
-    bcc/
-    melanoma/
-    scc/
-  val/
-    (same structure, ~20% split)
-```
-
-### 5. Train the Model
-
-```bash
-python train_model.py
-```
-
-This will:
-- Train in two phases (head → fine-tune)
-- Save the best checkpoint to `model/skin_lens_cnn.h5`
-- Output a classification report and training plot to `model/training_history.png`
-
-### 6. Verify the Model
-
-```bash
-python check_model.py
-```
-
-Expected output:
-```
-File Size: XX.XX MB
-✅ Model loaded successfully!
-Model Input Shape: (None, 224, 224, 3)
-Weights Checksum: XXXX.XXXX
-```
-
-### 7. Run the Application
-
-```bash
-python app.py
-```
-
-The server starts at `http://localhost:5001`
-
-**For production deployment:**
-
-```bash
-gunicorn app:app --workers 1 --timeout 120
-```
-
-> **Cloud deployment note:** Restrict Gunicorn to a single worker (`--workers 1`) and extend the timeout to prevent memory-limit crashes on free-tier servers (Render, Heroku).
 
 ---
 
