@@ -1,48 +1,41 @@
 import os
 import numpy as np
 from PIL import Image
-# Import the tiny runtime interpreter package instead of full heavy TensorFlow
-from PIL import Image
+import tensorflow as tf
 
-try:
-    # Render will use this lightweight runtime package
-    import tflite_runtime.interpreter as tflite
-except ImportError:
-    # Your Mac will seamlessly fall back to this since full TensorFlow is installed
-    import tensorflow.lite as tflite
+# Throttle full TensorFlow memory to prevent Render RAM crashes
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
 
 # ==========================
 # CONFIG
 # ==========================
-
 IMG_SIZE = (224, 224)
 
 # ==========================
-# LOAD MODEL (Updated to utilize the lightweight .tflite engine)
+# LOAD MODEL 
 # ==========================
-
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'skinlens_model.tflite')
 
 try:
-    print("Initializing TFLite Interpreter...")
-    interpreter = tflite.Interpreter(model_path=MODEL_PATH)
+    print("Initializing modern TFLite Interpreter...")
+    # Use modern TF to securely parse the tiny TFLite file
+    interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
     interpreter.allocate_tensors()
     
-    # Extract input/output details for execution mapping
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 except Exception as e:
-    print(f"❌ Critical Error loading lightweight model from {MODEL_PATH}: {str(e)}")
+    print(f"❌ Critical Error loading lightweight model: {str(e)}")
     interpreter = None
 
-# Helper method for app.py to confirm loading state
+# Helper method for app.py
 def is_model_loaded():
     return interpreter is not None
 
 # ==========================
 # IMAGE PREDICTION
 # ==========================
-
 def predict_image(image_path):
     if interpreter is None:
         return {"image_assessment": "Model Engine Offline", "cnn_risk": 0.0}
@@ -55,26 +48,18 @@ def predict_image(image_path):
     image = image / 255.0
     image = np.expand_dims(image, axis=0)
 
-    # Invoke the ultra-lightweight TFLite engine inference pipeline
+    # Invoke the TFLite engine inference pipeline
     interpreter.set_tensor(input_details[0]['index'], image)
     interpreter.invoke()
     
-    # Retrieve structural output probabilities from tensor arrays
     probability = float(interpreter.get_tensor(output_details[0]['index'])[0][0])
 
-    cnn_risk = round(
-        probability * 100,
-        2
-    )
+    cnn_risk = round(probability * 100, 2)
 
     if probability >= 0.5:
-        image_assessment = (
-            "Melanoma-like pattern detected"
-        )
+        image_assessment = "Melanoma-like pattern detected"
     else:
-        image_assessment = (
-            "No melanoma-like pattern detected"
-        )
+        image_assessment = "No melanoma-like pattern detected"
 
     return {
         "image_assessment": image_assessment,
@@ -84,7 +69,6 @@ def predict_image(image_path):
 # ==========================
 # QUESTIONNAIRE SCORING
 # ==========================
-
 def calculate_questionnaire_risk(answers):
     score = 0
     explanations = []
@@ -116,66 +100,49 @@ def calculate_questionnaire_risk(answers):
     # FAMILY HISTORY
     if history == "yes":
         score += 15
-        explanations.append(
-            "Family history of skin cancer"
-        )
+        explanations.append("Family history of skin cancer")
 
     # DURATION OF CHANGE
     if duration == "slow":
         score += 5
     elif duration == "rapid":
         score += 15
-        explanations.append(
-            "Rapid lesion change"
-        )
+        explanations.append("Rapid lesion change")
 
     # LESION CHANGE
     if change == "yesd":
         score += 20
-        explanations.append(
-            "Lesion is continuing to develop"
-        )
+        explanations.append("Lesion is continuing to develop")
     elif change == "unknown":
         score += 5
 
     # EXISTING MOLE
     if existing == "yes":
         score += 10
-        explanations.append(
-            "Developed from an existing mole"
-        )
+        explanations.append("Developed from an existing mole")
     elif existing == "unknown":
         score += 5
 
     # ITCHING
     if itching == "yes":
         score += 10
-        explanations.append(
-            "Itching reported"
-        )
+        explanations.append("Itching reported")
 
     # BLEEDING
     if bleeding == "yes":
         score += 20
-        explanations.append(
-            "Bleeding reported"
-        )
+        explanations.append("Bleeding reported")
     elif bleeding == "unknown":
         score += 5
 
     # OOZING
     if oozing == "yes":
         score += 15
-        explanations.append(
-            "Oozing reported"
-        )
+        explanations.append("Oozing reported")
     elif oozing == "unknown":
         score += 5
 
-    questionnaire_risk = min(
-        round((score / 120) * 100),
-        100
-    )
+    questionnaire_risk = min(round((score / 120) * 100), 100)
 
     return {
         "questionnaire_risk": questionnaire_risk,
@@ -185,7 +152,6 @@ def calculate_questionnaire_risk(answers):
 # ==========================
 # FINAL ANALYSIS
 # ==========================
-
 def analyze_patient(image_path, answers):
     cnn_result = predict_image(image_path)
     questionnaire_result = calculate_questionnaire_risk(answers)
@@ -193,13 +159,8 @@ def analyze_patient(image_path, answers):
     cnn_risk = cnn_result["cnn_risk"]
     questionnaire_risk = questionnaire_result["questionnaire_risk"]
 
-    # Combined score
-    final_risk = round(
-        (0.7 * cnn_risk) + (0.3 * questionnaire_risk),
-        2
-    )
+    final_risk = round((0.7 * cnn_risk) + (0.3 * questionnaire_risk), 2)
 
-    # Risk category
     if final_risk < 30:
         risk_level = "Low"
     elif final_risk < 60:
@@ -210,9 +171,7 @@ def analyze_patient(image_path, answers):
     explanations = list(questionnaire_result["explanations"])
 
     if cnn_risk > 70:
-        explanations.append(
-            "CNN detected suspicious visual patterns"
-        )
+        explanations.append("CNN detected suspicious visual patterns")
 
     return {
         "image_assessment": cnn_result["image_assessment"],
