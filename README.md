@@ -163,6 +163,7 @@ The CNN serves as a screening component and is combined with patient-provided cl
 ### Dataset
 
 The model was trained using the **HAM10000 (Human Against Machine with 10,000 Training Images)** dataset, one of the most widely used public dermatology imaging datasets.
+**Dataset Link:** [Kaggle - Skin Cancer MNIST: HAM10000](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)
 
 For this project:
 
